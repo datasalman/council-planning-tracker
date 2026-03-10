@@ -56,7 +56,7 @@ export function ExportButton({ applications, params, disabled }: ExportButtonPro
         type="button"
         onClick={handleExport}
         disabled={disabled || isExporting || applications.length === 0}
-        className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-colors"
+        className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all shadow-sm hover:shadow-md"
       >
         {isExporting ? (
           <>

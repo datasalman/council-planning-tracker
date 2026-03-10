@@ -5,7 +5,6 @@ function toISODate(date: Date): string {
 }
 
 function formatForInput(isoDate: string): string {
-  // Input[type=date] uses YYYY-MM-DD
   return isoDate;
 }
 
@@ -26,13 +25,11 @@ function startOfMonth(date: Date): Date {
 }
 
 function startOfLastMonth(date: Date): Date {
-  const d = new Date(date.getFullYear(), date.getMonth() - 1, 1);
-  return d;
+  return new Date(date.getFullYear(), date.getMonth() - 1, 1);
 }
 
 function endOfLastMonth(date: Date): Date {
-  const d = new Date(date.getFullYear(), date.getMonth(), 0);
-  return d;
+  return new Date(date.getFullYear(), date.getMonth(), 0);
 }
 
 function startOfQuarter(date: Date): Date {
@@ -110,56 +107,66 @@ export function DateRangePicker({
   };
 
   const handleToChange = (value: string) => {
-    if (value < dateFrom) return; // Invalid: ignore
+    if (value < dateFrom) return;
     onChange(dateFrom, value);
   };
 
-  const applyPreset = (preset: (typeof PRESETS)[0]) => {
+  // Check if a preset is currently active
+  const isPresetActive = (preset: (typeof PRESETS)[0]) => {
     const { from, to } = preset.getDates();
-    onChange(from, to);
+    return from === dateFrom && to === dateTo;
   };
 
   return (
     <div>
-      <label className="block text-sm font-semibold text-gray-700 mb-2">
+      <label className="block text-sm font-semibold text-white/90 mb-2">
         Date Range
       </label>
 
       <div className="space-y-2 mb-3">
         <div>
-          <label className="text-xs text-gray-500 mb-1 block">From</label>
+          <label className="text-xs text-white/50 mb-1 block">From</label>
           <input
             type="date"
             value={formatForInput(dateFrom)}
             max={today}
             onChange={(e) => handleFromChange(e.target.value)}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         <div>
-          <label className="text-xs text-gray-500 mb-1 block">To</label>
+          <label className="text-xs text-white/50 mb-1 block">To</label>
           <input
             type="date"
             value={formatForInput(dateTo)}
             min={dateFrom}
             max={today}
             onChange={(e) => handleToChange(e.target.value)}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
 
       <div className="flex flex-wrap gap-1.5">
-        {PRESETS.map((preset) => (
-          <button
-            key={preset.label}
-            type="button"
-            onClick={() => applyPreset(preset)}
-            className="text-xs px-2.5 py-1 bg-gray-100 hover:bg-blue-100 hover:text-blue-700 text-gray-600 rounded-full transition-colors"
-          >
-            {preset.label}
-          </button>
-        ))}
+        {PRESETS.map((preset) => {
+          const active = isPresetActive(preset);
+          return (
+            <button
+              key={preset.label}
+              type="button"
+              onClick={() => {
+                const { from, to } = preset.getDates();
+                onChange(from, to);
+              }}
+              className={`text-xs px-2.5 py-1 rounded-full transition-all duration-200 ${active
+                  ? "bg-blue-500 text-white shadow-sm"
+                  : "bg-white/10 hover:bg-white/20 text-white/60 hover:text-white/80"
+                }`}
+            >
+              {preset.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
