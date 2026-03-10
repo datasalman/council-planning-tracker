@@ -21,23 +21,23 @@ export function BoroughSelector({ selected, onChange }: BoroughSelectorProps) {
 
   return (
     <div>
-      <label className="block text-sm font-semibold text-gray-700 mb-2">
+      <label className="block text-sm font-semibold text-white/90 mb-2">
         Select Boroughs
       </label>
-      <div className="border border-gray-200 rounded-lg bg-white">
-        <div className="p-3 space-y-2">
+      <div className="rounded-xl bg-white/5 border border-white/10">
+        <div className="p-3 space-y-1.5">
           {SUPPORTED_COUNCILS.map((council) => (
             <label
               key={council.id}
-              className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5"
+              className="flex items-center gap-2.5 cursor-pointer hover:bg-white/5 rounded-lg px-2 py-1.5 transition-colors"
             >
               <input
                 type="checkbox"
                 checked={selected.includes(council.id)}
                 onChange={() => toggleBorough(council.id)}
-                className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                className="dark-checkbox w-4 h-4 rounded border-white/20"
               />
-              <span className="text-sm text-gray-700">{council.name}</span>
+              <span className="text-sm text-white/80">{council.name}</span>
             </label>
           ))}
         </div>
@@ -45,22 +45,22 @@ export function BoroughSelector({ selected, onChange }: BoroughSelectorProps) {
           <button
             type="button"
             onClick={selectAll}
-            className="text-xs text-blue-600 hover:underline"
+            className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
           >
             Select All
           </button>
-          <span className="text-xs text-gray-400">|</span>
+          <span className="text-xs text-white/20">|</span>
           <button
             type="button"
             onClick={clearAll}
-            className="text-xs text-gray-500 hover:underline"
+            className="text-xs text-white/40 hover:text-white/60 transition-colors"
           >
             Clear
           </button>
         </div>
       </div>
       {selected.length === 0 && (
-        <p className="text-xs text-red-500 mt-1">Select at least one borough</p>
+        <p className="text-xs text-red-400 mt-1.5">Select at least one borough</p>
       )}
       {selected.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-2">
@@ -69,13 +69,13 @@ export function BoroughSelector({ selected, onChange }: BoroughSelectorProps) {
             return (
               <span
                 key={id}
-                className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full"
+                className="inline-flex items-center gap-1 bg-blue-500/20 text-blue-300 text-xs font-medium px-2 py-0.5 rounded-full border border-blue-500/20"
               >
                 {council?.name}
                 <button
                   type="button"
                   onClick={() => toggleBorough(id)}
-                  className="hover:text-blue-600"
+                  className="hover:text-blue-200 transition-colors"
                 >
                   ×
                 </button>

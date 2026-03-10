@@ -12,15 +12,86 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Subtle gradient page background */
+.app-bg {
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8edf5 50%, #f5f3ff 100%);
+  min-height: 100vh;
+}
+
+/* Dark sidebar card */
+.sidebar-card {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+}
+
+/* Custom scrollbar for sidebar */
+.sidebar-card ::-webkit-scrollbar {
+  width: 5px;
+}
+.sidebar-card ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-card ::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+}
+
+/* Progress bar shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.progress-shimmer {
+  background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 40%, #93c5fd 50%, #60a5fa 60%, #3b82f6 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+/* Glassmorphism card */
+.glass-card {
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.5);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+}
+
+/* Smooth row hover */
+.table-row-hover {
+  transition: background-color 0.15s ease;
+}
+
+/* Search button gradient */
+.btn-search {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+}
+.btn-search:hover:not(:disabled) {
+  box-shadow: 0 4px 16px rgba(37,99,235,0.45);
+  transform: translateY(-1px);
+}
+.btn-search:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Borough checkbox on dark bg */
+.dark-checkbox {
+  accent-color: #3b82f6;
+}
+
+/* Date input dark text override */
+input[type="date"] {
+  color: #111827;
+}
+input[type="date"]::-webkit-datetime-edit {
+  color: #111827;
 }

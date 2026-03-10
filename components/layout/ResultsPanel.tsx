@@ -28,13 +28,27 @@ function CategoryBreakdown({ applications }: { applications: Application[] }) {
   const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
   if (sorted.length === 0) return null;
 
+  const categoryColors: Record<string, string> = {
+    "Loft Conversions": "bg-violet-100 text-violet-700",
+    "Rear Extensions": "bg-emerald-100 text-emerald-700",
+    "Side Extensions": "bg-amber-100 text-amber-700",
+    "Change of Use": "bg-rose-100 text-rose-700",
+    "Front Extensions": "bg-sky-100 text-sky-700",
+    "Dormer Windows": "bg-indigo-100 text-indigo-700",
+    "Two-Storey Extensions": "bg-orange-100 text-orange-700",
+    "Hip-to-Gable": "bg-teal-100 text-teal-700",
+  };
+
   return (
     <div className="flex flex-wrap gap-2">
-      {sorted.map(([cat, count]) => (
-        <span key={cat} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
-          {cat}: <strong>{count}</strong>
-        </span>
-      ))}
+      {sorted.map(([cat, count]) => {
+        const colorClass = categoryColors[cat] ?? "bg-gray-100 text-gray-600";
+        return (
+          <span key={cat} className={`text-xs font-medium px-2.5 py-1 rounded-full ${colorClass}`}>
+            {cat}: <strong>{count}</strong>
+          </span>
+        );
+      })}
     </div>
   );
 }
@@ -53,14 +67,14 @@ export function ResultsPanel({
     <div className="h-full flex flex-col gap-3">
       {/* Stats bar */}
       {applications.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-2">
+        <div className="rounded-xl p-4 space-y-2" style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.5)", boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
               <h2 className="text-lg font-bold text-gray-900">
                 {totalCount.toLocaleString()} Applications Found
               </h2>
               {isFromCache && (
-                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+                <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full font-medium">
                   From cache
                 </span>
               )}
@@ -82,7 +96,7 @@ export function ResultsPanel({
       )}
 
       {/* Results table */}
-      <div className="flex-1 bg-white border border-gray-200 rounded-lg overflow-hidden min-h-0">
+      <div className="flex-1 rounded-xl overflow-hidden min-h-0" style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.5)", boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
         <ResultsTable
           applications={applications}
           proposalTypeFilter={proposalTypeFilter}

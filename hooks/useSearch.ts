@@ -19,6 +19,7 @@ export interface SearchState {
   error: string | null;
   isFromCache: boolean;
   totalCount: number;
+  completedBoroughs: number;
 }
 
 export function useSearch() {
@@ -29,6 +30,7 @@ export function useSearch() {
     error: null,
     isFromCache: false,
     totalCount: 0,
+    completedBoroughs: 0,
   });
 
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -45,6 +47,7 @@ export function useSearch() {
       error: null,
       isFromCache: false,
       totalCount: 0,
+      completedBoroughs: 0,
     });
 
     try {
@@ -89,29 +92,37 @@ export function useSearch() {
                 error: null,
                 isFromCache: true,
                 totalCount: (event.total as number) || 0,
+                completedBoroughs: 0,
               });
               break;
 
-            case "progress":
+            case "progress": {
+              const progStatus = event.status as "fetching" | "complete" | "enriching";
               setState((s) => ({
                 ...s,
                 progress: {
                   borough: event.borough as string,
-                  status: event.status as "fetching" | "complete",
+                  status: progStatus === "enriching" ? "fetching" : progStatus,
                   count: event.count as number,
                 },
+                completedBoroughs:
+                  progStatus === "complete"
+                    ? s.completedBoroughs + 1
+                    : s.completedBoroughs,
               }));
               break;
+            }
 
             case "complete":
-              setState({
+              setState((s) => ({
+                ...s,
                 status: "complete",
                 applications: event.data as Application[],
                 progress: null,
                 error: null,
                 isFromCache: false,
                 totalCount: (event.total as number) || 0,
-              });
+              }));
               break;
 
             case "error":
@@ -136,7 +147,7 @@ export function useSearch() {
 
   const cancelSearch = useCallback(() => {
     abortControllerRef.current?.abort();
-    setState((s) => ({ ...s, status: "idle", progress: null }));
+    setState((s) => ({ ...s, status: "idle", progress: null, completedBoroughs: 0 }));
   }, []);
 
   const reset = useCallback(() => {
@@ -147,6 +158,7 @@ export function useSearch() {
       error: null,
       isFromCache: false,
       totalCount: 0,
+      completedBoroughs: 0,
     });
   }, []);
 
