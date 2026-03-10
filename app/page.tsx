@@ -36,7 +36,7 @@ export default function Home() {
   const totalBoroughs = lastParams?.boroughs.length ?? 1;
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ background: "linear-gradient(135deg, #f0f4ff 0%, #e8edf5 50%, #f5f3ff 100%)", minHeight: "100vh" }}>
+    <div className="h-screen overflow-hidden flex flex-col" style={{ background: "linear-gradient(135deg, #f0f4ff 0%, #e8edf5 50%, #f5f3ff 100%)" }}>
       {/* Header */}
       <header className="mx-4 mt-4 rounded-2xl" style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.5)", boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
         <div className="max-w-screen-2xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -55,13 +55,10 @@ export default function Home() {
       </header>
 
       {/* Main layout */}
-      <main
-        className="flex-1 max-w-screen-2xl mx-auto w-full px-4 py-4 flex gap-4"
-        style={{ minHeight: "calc(100vh - 89px)" }}
-      >
+      <main className="flex-1 max-w-screen-2xl mx-auto w-full px-4 py-4 flex gap-4 min-h-0">
         {/* Search Panel — dark sidebar */}
         <aside className="w-80 shrink-0">
-          <div className="p-5 h-full rounded-2xl" style={{ background: "linear-gradient(180deg, #1e293b 0%, #0f172a 100%)", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 4px 24px rgba(0,0,0,0.12)" }}>
+          <div className="p-5 h-full rounded-2xl overflow-hidden" style={{ background: "linear-gradient(180deg, #1e293b 0%, #0f172a 100%)", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 4px 24px rgba(0,0,0,0.12)" }}>
             <SearchPanel
               onSearch={handleSearch}
               isLoading={status === "fetching"}
@@ -70,7 +67,7 @@ export default function Home() {
         </aside>
 
         {/* Results Panel */}
-        <section className="flex-1 min-w-0 overflow-hidden">
+        <section className="flex-1 min-w-0 overflow-auto">
           <ResultsPanel
             applications={applications}
             params={lastParams}
