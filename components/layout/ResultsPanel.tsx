@@ -63,6 +63,16 @@ export function ResultsPanel({
   proposalTypeFilter,
   onDismissError,
 }: ResultsPanelProps) {
+  // Apply the same client-side filter to get the filtered count
+  const filteredApps =
+    proposalTypeFilter.length === 0
+      ? applications
+      : applications.filter((app) =>
+        proposalTypeFilter.some((pt) => app.proposal_category.includes(pt))
+      );
+  const displayCount = filteredApps.length;
+  const hasFilter = proposalTypeFilter.length > 0;
+
   return (
     <div className="h-full flex flex-col gap-3">
       {/* Stats bar */}
@@ -71,8 +81,13 @@ export function ResultsPanel({
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
               <h2 className="text-lg font-bold text-gray-900">
-                {totalCount.toLocaleString()} Applications Found
+                {displayCount.toLocaleString()} Applications{hasFilter ? " Match" : " Found"}
               </h2>
+              {hasFilter && displayCount !== totalCount && (
+                <span className="text-xs text-gray-400 font-normal">
+                  of {totalCount.toLocaleString()} total
+                </span>
+              )}
               {isFromCache && (
                 <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full font-medium">
                   From cache

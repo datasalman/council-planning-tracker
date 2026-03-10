@@ -44,31 +44,33 @@ export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
   };
 
   return (
-    <div className="h-full flex flex-col gap-6 overflow-y-auto pr-1">
-      <BoroughSelector
-        selected={selectedBoroughs}
-        onChange={setSelectedBoroughs}
-      />
+    <div className="h-full flex flex-col">
+      <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-1 pb-2">
+        <BoroughSelector
+          selected={selectedBoroughs}
+          onChange={setSelectedBoroughs}
+        />
 
-      <div className="h-px bg-white/10" />
+        <div className="h-px bg-white/10 shrink-0" />
 
-      <DateRangePicker
-        dateFrom={dateFrom}
-        dateTo={dateTo}
-        onChange={(from, to) => {
-          setDateFrom(from);
-          setDateTo(to);
-        }}
-      />
+        <DateRangePicker
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onChange={(from, to) => {
+            setDateFrom(from);
+            setDateTo(to);
+          }}
+        />
 
-      <div className="h-px bg-white/10" />
+        <div className="h-px bg-white/10 shrink-0" />
 
-      <ProposalTypeFilter
-        selected={proposalTypes}
-        onChange={setProposalTypes}
-      />
+        <ProposalTypeFilter
+          selected={proposalTypes}
+          onChange={setProposalTypes}
+        />
+      </div>
 
-      <div className="mt-auto pt-3">
+      <div className="shrink-0 pt-3 border-t border-white/10">
         <SearchButton
           onClick={handleSearch}
           disabled={!canSearch}
