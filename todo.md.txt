@@ -1,0 +1,17 @@
+1. Additional borough adding priority list:
+
+- Waltham Forest
+- Hackney
+- Islington
+- Tower Hamlets
+- Camden
+- Barnet
+- Lewisham 
+- Greenwich
+- Brent 
+- Ealing
+- Southwark
+
+2. Address split issues:
+
+- Incorrectly split address in some cases

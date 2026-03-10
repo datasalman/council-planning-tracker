@@ -1,0 +1,102 @@
+{
+  "Loft Conversions": [
+    "loft conversion", "loft extension", "roof conversion", "habitable loft",
+    "attic conversion", "loft room", "roof room", "roof space conversion"
+  ],
+  "Rear Extensions": [
+    "rear extension", "single storey rear", "single-storey rear",
+    "ground floor rear", "kitchen extension rear", "rear addition",
+    "rear infill", "rear outbuilding"
+  ],
+  "Side Extensions": [
+    "side extension", "single storey side", "single-storey side",
+    "side infill", "side return", "side addition"
+  ],
+  "Two-Storey Extensions": [
+    "two storey extension", "two-storey extension", "double storey",
+    "2 storey extension", "first floor extension", "double-storey extension",
+    "two storey rear", "two storey side", "two storey front"
+  ],
+  "Front Extensions": [
+    "front extension", "front porch", "entrance porch", "bay window",
+    "porch extension", "front addition"
+  ],
+  "Dormer Windows": [
+    "dormer", "roof dormer", "dormer window", "rear dormer",
+    "side dormer", "dormer loft", "dormer extension"
+  ],
+  "Hip-to-Gable": [
+    "hip to gable", "hip-to-gable", "gable end", "roof alteration from hip",
+    "hipped roof to gable", "hip roof to gable"
+  ],
+  "Change of Use": [
+    "change of use", "conversion from", "convert to", "use class",
+    "C3 to", "to C3", "HMO", "house in multiple occupation",
+    "to residential", "from commercial", "from office"
+  ],
+  "Demolition & Rebuild": [
+    "demolition", "demolish", "rebuild", "replacement dwelling",
+    "knock down", "demolish and erect", "demolish and replace",
+    "demolish and construct"
+  ],
+  "New Build": [
+    "new dwelling", "new build", "erection of", "construction of new",
+    "new residential", "new house", "new flat", "new apartment",
+    "erection of a", "new detached", "new semi-detached"
+  ],
+  "Basement Extensions": [
+    "basement", "lower ground", "subterranean", "underground extension",
+    "cellar", "basement extension", "basement conversion", "basement flat"
+  ],
+  "Prior Approval / Permitted Development": [
+    "prior approval", "permitted development", "prior notification",
+    "prior approval for", "class q", "class ma", "class a prior",
+    "householder prior"
+  ],
+  "Certificate of Lawfulness": [
+    "certificate of lawfulness", "lawful development certificate",
+    "lawful use certificate", "CLU", "CLD", "CLEUD", "CLOPUD",
+    "existing use certificate"
+  ],
+  "Listed Building & Heritage": [
+    "listed building", "conservation area", "heritage asset",
+    "scheduled monument", "article 4", "locally listed",
+    "historic building", "grade i", "grade ii", "grade 1", "grade 2"
+  ],
+  "Advertisement Consent": [
+    "advertisement", "signage", "fascia sign", "hoarding",
+    "illuminated sign", "display of", "non-illuminated sign",
+    "estate agent board", "banner"
+  ],
+  "Telecommunications": [
+    "telecommunications", "phone mast", "5G mast", "antenna",
+    "base station", "telegraph pole", "radio mast", "telecoms",
+    "broadband cabinet", "street cabinet"
+  ],
+  "Trees & Hedgerows (TPO)": [
+    "tree preservation", "TPO", "works to tree", "crown reduction",
+    "felling", "hedgerow", "tree works", "tree surgery",
+    "crown lift", "pollarding", "dead wooding", "tree removal"
+  ],
+  "Discharge of Conditions": [
+    "discharge of condition", "discharge condition", "condition discharge",
+    "details pursuant", "pursuant to condition", "approval of details"
+  ],
+  "Outline & Reserved Matters": [
+    "outline planning", "reserved matters", "outline application",
+    "approval of reserved matters", "outline permission",
+    "access layout scale appearance landscaping"
+  ],
+  "Garage / Outbuilding / Garden Structure": [
+    "garage", "outbuilding", "garden room", "garden office",
+    "summerhouse", "garden shed", "carport", "annexe",
+    "detached garage", "home office", "studio", "pool house",
+    "swimming pool"
+  ],
+  "Commercial / Mixed Use": [
+    "retail", "office use", "commercial use", "industrial unit",
+    "warehouse", "restaurant", "cafe", "café", "hotel",
+    "mixed use", "A1", "A2", "A3", "B1", "B2", "B8", "E class",
+    "sui generis", "takeaway", "public house", "pub"
+  ]
+}
