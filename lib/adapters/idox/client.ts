@@ -1,4 +1,9 @@
 import axios from "axios";
+import https from "https";
+
+const client = axios.create({
+  httpsAgent: new https.Agent({ rejectUnauthorized: false })
+});
 
 const TIMEOUT_MS = Number(process.env.REQUEST_TIMEOUT_MS) || 30_000;
 const UA =
@@ -16,32 +21,33 @@ export interface RawIdoxApplication {
 
 // ─── Date helpers ────────────────────────────────────────────────────────────
 
-/** Return the ISO YYYY-MM-DD for the Monday of the week containing `date`. */
-function weekMonday(date: Date): Date {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  const dow = d.getDay(); // 0 = Sun
-  d.setDate(d.getDate() + (dow === 0 ? -6 : 1 - dow));
-  return d;
-}
-
-/** ISO YYYY-MM-DD → Idox DD-MM-YYYY */
-function isoToIdox(iso: string): string {
+/** ISO YYYY-MM-DD → Idox DD/MM/YYYY */
+function isoToIdoxSlash(iso: string): string {
   const [y, m, d] = iso.split("-");
-  return `${d}-${m}-${y}`;
+  return `${d}/${m}/${y}`;
 }
 
-/** Return DD-MM-YYYY strings for all Monday week-starts overlapping [from, to]. */
-function weeksInRange(dateFrom: string, dateTo: string): string[] {
-  const start = weekMonday(new Date(dateFrom));
+/** Break [dateFrom, dateTo] into chunks of max `maxDays` days. Returns inclusive pairs [start, end]. */
+function dateChunks(dateFrom: string, dateTo: string, maxDays: number = 30): [string, string][] {
+  const start = new Date(dateFrom);
   const end = new Date(dateTo);
-  const weeks: string[] = [];
-  const cur = new Date(start);
+  const chunks: [string, string][] = [];
+
+  let cur = new Date(start);
   while (cur <= end) {
-    weeks.push(isoToIdox(cur.toISOString().slice(0, 10)));
-    cur.setDate(cur.getDate() + 7);
+    let chunkEnd = new Date(cur);
+    chunkEnd.setDate(chunkEnd.getDate() + maxDays - 1);
+    if (chunkEnd > end) {
+      chunkEnd = new Date(end);
+    }
+    chunks.push([
+      isoToIdoxSlash(cur.toISOString().slice(0, 10)),
+      isoToIdoxSlash(chunkEnd.toISOString().slice(0, 10))
+    ]);
+    cur = new Date(chunkEnd);
+    cur.setDate(cur.getDate() + 1);
   }
-  return weeks;
+  return chunks;
 }
 
 // ─── HTML parser ─────────────────────────────────────────────────────────────
@@ -99,8 +105,9 @@ function parseResultsHtml(html: string): RawIdoxApplication[] {
       .trim();
 
     // Received date: "Received: Thu 19 Feb 2026" → "19 Feb 2026"
+    // Also matched "Validated: Thu 19 Feb 2026" as some councils sort by Validated
     const receivedMatch = meta.match(
-      /Received:?\s*(?:\w{3,}\s+)?(\d{1,2}\s+\w+\s+\d{4})/i
+      /(?:Received|Validated):?\s*(?:\w{3,}\s+)?(\d{1,2}\s+\w+\s+\d{4})/i
     );
     const receivedDate = receivedMatch?.[1].trim() ?? "";
 
@@ -138,36 +145,55 @@ function extractExtraPageNums(html: string): number[] {
 
 // ─── HTTP fetching ────────────────────────────────────────────────────────────
 
-async function fetchOneWeek(
+async function fetchAdvancedSearchChunk(
   baseUrl: string,
-  weekDate: string
+  startSlash: string,
+  endSlash: string
 ): Promise<RawIdoxApplication[]> {
-  // Request 100 results per page to minimise pagination round-trips
-  const firstResp = await axios.get<string>(`${baseUrl}/weeklyListResults.do`, {
-    params: {
-      action: "firstPage",
-      week: weekDate,
-      searchType: "Application",
-      dateType: "DC_Validated",
-      resultsPerPage: 100,
-    },
+  // 1. Establish session
+  const sessionResp = await client.get<string>(`${baseUrl}/search.do`, {
+    params: { action: "advanced" },
     headers: { "User-Agent": UA, Accept: "text/html,application/xhtml+xml" },
     timeout: TIMEOUT_MS,
     responseType: "text",
   });
 
-  // Capture session cookie so pagination requests stay in the same search session
-  const sessionCookie = ((firstResp.headers["set-cookie"] as string[] | undefined) ?? [])
+  const sessionCookie = ((sessionResp.headers["set-cookie"] as string[] | undefined) ?? [])
     .map((c) => c.split(";")[0])
     .join("; ");
 
+  const csrfMatch = sessionResp.data.match(/name="_csrf"\s+value="([^"]+)"/);
+  const csrfToken = csrfMatch ? csrfMatch[1] : "";
+
+  // 2. Submit advanced search POST
+  const params = new URLSearchParams();
+  params.append("date(applicationValidatedStart)", startSlash);
+  params.append("date(applicationValidatedEnd)", endSlash);
+  params.append("searchType", "Application");
+  if (csrfToken) params.append("_csrf", csrfToken);
+
+  const firstResp = await client.post<string>(
+    `${baseUrl}/advancedSearchResults.do?action=firstPage`,
+    params.toString(),
+    {
+      headers: {
+        "User-Agent": UA,
+        Accept: "text/html,application/xhtml+xml",
+        "Content-Type": "application/x-www-form-urlencoded",
+        Cookie: sessionCookie,
+      },
+      timeout: TIMEOUT_MS,
+      responseType: "text",
+    }
+  );
+
   const results = parseResultsHtml(firstResp.data);
 
-  // Fetch any remaining pages (shouldn't happen with resultsPerPage=100, but safe)
+  // 3. Fetch any remaining pages
   const extraPages = extractExtraPageNums(firstResp.data);
   for (const pgno of extraPages) {
     try {
-      const pageResp = await axios.get<string>(
+      const pageResp = await client.get<string>(
         `${baseUrl}/pagedSearchResults.do`,
         {
           params: { action: "page", "searchCriteria.page": pgno },
@@ -196,22 +222,22 @@ export async function searchByDateRange(
   dateFrom: string,
   dateTo: string
 ): Promise<RawIdoxApplication[]> {
-  const weeks = weeksInRange(dateFrom, dateTo);
+  const chunks = dateChunks(dateFrom, dateTo, 30);
   const seen = new Set<string>();
   const results: RawIdoxApplication[] = [];
 
-  for (const week of weeks) {
+  for (const [startSlash, endSlash] of chunks) {
     try {
-      const weekResults = await fetchOneWeek(baseUrl, week);
-      for (const r of weekResults) {
+      const chunkResults = await fetchAdvancedSearchChunk(baseUrl, startSlash, endSlash);
+      for (const r of chunkResults) {
         const key = r.keyVal || r.reference;
         if (key && !seen.has(key)) {
           seen.add(key);
           results.push(r);
         }
       }
-    } catch {
-      // skip failed weeks, continue with the rest
+    } catch (err) {
+      // skip failed chunks, continue with the rest
     }
   }
 
@@ -220,7 +246,7 @@ export async function searchByDateRange(
 
 export async function healthCheck(baseUrl: string): Promise<boolean> {
   try {
-    await axios.get(`${baseUrl}/search.do`, {
+    await client.get(`${baseUrl}/search.do`, {
       params: { action: "simple" },
       timeout: 5_000,
       responseType: "text",
