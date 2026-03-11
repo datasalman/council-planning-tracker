@@ -18,7 +18,7 @@ export class AgileAdapter implements CouncilAdapter {
   ) {
     this.councilId = councilId;
     this.councilName = councilName;
-    this.client = new AgileApplicationsClient(clientCode);
+    this.client = new AgileApplicationsClient(clientCode, portalBaseUrl);
     this.portalBaseUrl = portalBaseUrl;
   }
 
