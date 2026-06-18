@@ -18,18 +18,24 @@ function subDays(date: Date, days: number): Date {
 }
 
 interface SearchPanelProps {
-  onSearch: (params: SearchParams, proposalFilter: string[]) => void;
+  onSearch: (params: SearchParams) => void;
   isLoading: boolean;
+  proposalTypes: string[];
+  onProposalTypesChange: (selected: string[]) => void;
 }
 
-export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
+export function SearchPanel({
+  onSearch,
+  isLoading,
+  proposalTypes,
+  onProposalTypesChange,
+}: SearchPanelProps) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const [selectedBoroughs, setSelectedBoroughs] = useState<string[]>(["redbridge"]);
   const [dateFrom, setDateFrom] = useState(toISODate(subDays(today, 30)));
   const [dateTo, setDateTo] = useState(toISODate(today));
-  const [proposalTypes, setProposalTypes] = useState<string[]>([]);
 
   const canSearch = selectedBoroughs.length > 0 && dateFrom && dateTo && !isLoading;
 
@@ -40,7 +46,7 @@ export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
       dateFrom,
       dateTo,
     };
-    onSearch(params, proposalTypes);
+    onSearch(params);
   };
 
   return (
@@ -66,7 +72,7 @@ export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
 
         <ProposalTypeFilter
           selected={proposalTypes}
-          onChange={setProposalTypes}
+          onChange={onProposalTypesChange}
         />
       </div>
 

@@ -16,17 +16,26 @@ interface ResultsPanelProps {
   isFromCache: boolean;
   totalCount: number;
   proposalTypeFilter: string[];
+  onFilterChange: (selected: string[]) => void;
   onDismissError: () => void;
 }
 
-function CategoryBreakdown({ applications }: { applications: Application[] }) {
+function CategoryBreakdown({
+  applications,
+  selected,
+  onToggle,
+}: {
+  applications: Application[];
+  selected: string[];
+  onToggle: (category: string) => void;
+}) {
   const counts: Record<string, number> = {};
   for (const app of applications) {
     for (const cat of app.proposal_category) {
       counts[cat] = (counts[cat] || 0) + 1;
     }
   }
-  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 6);
   if (sorted.length === 0) return null;
 
   const categoryColors: Record<string, string> = {
@@ -41,15 +50,33 @@ function CategoryBreakdown({ applications }: { applications: Application[] }) {
   };
 
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap items-center gap-1.5">
       {sorted.map(([cat, count]) => {
         const colorClass = categoryColors[cat] ?? "bg-slate-100 text-slate-600";
+        const active = selected.includes(cat);
         return (
-          <span key={cat} className={`text-xs font-medium px-2.5 py-1 rounded-full ${colorClass}`}>
+          <button
+            key={cat}
+            type="button"
+            onClick={() => onToggle(cat)}
+            title={active ? `Remove ${cat} filter` : `Filter to ${cat}`}
+            className={`text-xs font-medium px-2.5 py-1 rounded-full transition-all cursor-pointer hover:brightness-95 ${colorClass} ${
+              active ? "ring-2 ring-offset-1 ring-slate-400" : ""
+            }`}
+          >
             {cat}: <strong>{count}</strong>
-          </span>
+          </button>
         );
       })}
+      {selected.length > 0 && (
+        <button
+          type="button"
+          onClick={() => onToggle("__clear__")}
+          className="text-xs font-medium px-2 py-1 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
+        >
+          Clear filter
+        </button>
+      )}
     </div>
   );
 }
@@ -81,6 +108,7 @@ export function ResultsPanel({
   isFromCache,
   totalCount,
   proposalTypeFilter,
+  onFilterChange,
   onDismissError,
 }: ResultsPanelProps) {
   // Apply the same client-side filter to get the filtered count
@@ -92,6 +120,18 @@ export function ResultsPanel({
       );
   const displayCount = filteredApps.length;
   const hasFilter = proposalTypeFilter.length > 0;
+
+  const toggleCategory = (category: string) => {
+    if (category === "__clear__") {
+      onFilterChange([]);
+      return;
+    }
+    onFilterChange(
+      proposalTypeFilter.includes(category)
+        ? proposalTypeFilter.filter((c) => c !== category)
+        : [...proposalTypeFilter, category]
+    );
+  };
 
   return (
     <div className="h-full flex flex-col gap-3">
@@ -123,7 +163,11 @@ export function ResultsPanel({
               />
             )}
           </div>
-          <CategoryBreakdown applications={applications} />
+          <CategoryBreakdown
+            applications={applications}
+            selected={proposalTypeFilter}
+            onToggle={toggleCategory}
+          />
         </div>
       )}
 
