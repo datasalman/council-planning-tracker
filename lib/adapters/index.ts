@@ -3,9 +3,13 @@ import { AgileAdapter } from "./agile";
 import { WalthamForestAdapter } from "./walthamforest";
 import { IdoxAdapter } from "./idox";
 
-// Adapter registry — add new councils here
+// Each council we support is registered here. To add another council, find the
+// planning portal it runs and plug in the matching adapter:
+//   - Agile Applications councils use a JSON API (AgileAdapter)
+//   - Idox Public Access councils share a common HTML search (IdoxAdapter)
+//   - anything bespoke gets its own adapter (e.g. Waltham Forest)
 const adapters = new Map<string, CouncilAdapter>([
-  // ── Agile Applications ────────────────────────────────────────────────────
+  // Agile Applications portals
   [
     "redbridge",
     new AgileAdapter(
@@ -34,10 +38,10 @@ const adapters = new Map<string, CouncilAdapter>([
     ),
   ],
 
-  // ── Custom scrapers ───────────────────────────────────────────────────────
+  // Bespoke portal
   ["walthamforest", new WalthamForestAdapter()],
 
-  // ── Idox Public Access ────────────────────────────────────────────────────
+  // Idox Public Access portals
   [
     "towerhamlets",
     new IdoxAdapter(
@@ -78,6 +82,62 @@ const adapters = new Map<string, CouncilAdapter>([
       "https://pam.ealing.gov.uk/online-applications"
     ),
   ],
+  [
+    "barnet",
+    new IdoxAdapter(
+      "barnet",
+      "Barnet",
+      "https://publicaccess.barnet.gov.uk/online-applications"
+    ),
+  ],
+  [
+    "southwark",
+    new IdoxAdapter(
+      "southwark",
+      "Southwark",
+      "https://planning.southwark.gov.uk/online-applications"
+    ),
+  ],
+  [
+    "croydon",
+    new IdoxAdapter(
+      "croydon",
+      "Croydon",
+      "https://publicaccess3.croydon.gov.uk/online-applications"
+    ),
+  ],
+  [
+    "enfield",
+    new IdoxAdapter(
+      "enfield",
+      "Enfield",
+      "https://planningandbuildingcontrol.enfield.gov.uk/online-applications"
+    ),
+  ],
+  [
+    "bexley",
+    new IdoxAdapter(
+      "bexley",
+      "Bexley",
+      "https://pa.bexley.gov.uk/online-applications"
+    ),
+  ],
+  [
+    "kingston",
+    new IdoxAdapter(
+      "kingston",
+      "Kingston upon Thames",
+      "https://publicaccess.kingston.gov.uk/online-applications"
+    ),
+  ],
+  [
+    "newham",
+    new IdoxAdapter(
+      "newham",
+      "Newham",
+      "https://pa.newham.gov.uk/online-applications"
+    ),
+  ],
 ]);
 
 export interface CouncilInfo {
@@ -86,15 +146,22 @@ export interface CouncilInfo {
 }
 
 export const SUPPORTED_COUNCILS: CouncilInfo[] = [
-  { id: "redbridge", name: "Redbridge" },
-  { id: "islington", name: "Islington" },
-  { id: "richmond", name: "Richmond upon Thames" },
-  { id: "walthamforest", name: "Waltham Forest" },
-  { id: "towerhamlets", name: "Tower Hamlets" },
-  { id: "lewisham", name: "Lewisham" },
+  { id: "barnet", name: "Barnet" },
+  { id: "bexley", name: "Bexley" },
   { id: "brent", name: "Brent" },
-  { id: "greenwich", name: "Greenwich" },
+  { id: "croydon", name: "Croydon" },
   { id: "ealing", name: "Ealing" },
+  { id: "enfield", name: "Enfield" },
+  { id: "greenwich", name: "Greenwich" },
+  { id: "islington", name: "Islington" },
+  { id: "kingston", name: "Kingston upon Thames" },
+  { id: "lewisham", name: "Lewisham" },
+  { id: "newham", name: "Newham" },
+  { id: "redbridge", name: "Redbridge" },
+  { id: "richmond", name: "Richmond upon Thames" },
+  { id: "southwark", name: "Southwark" },
+  { id: "towerhamlets", name: "Tower Hamlets" },
+  { id: "walthamforest", name: "Waltham Forest" },
 ];
 
 export function getAdapter(councilId: string): CouncilAdapter {
