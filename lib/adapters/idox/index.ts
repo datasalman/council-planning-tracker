@@ -3,6 +3,28 @@ import { Application } from "../../types";
 import { searchByDateRange, healthCheck } from "./client";
 import { transformApplication } from "./transformer";
 
+/**
+ * Whether an Idox "received" date (e.g. "19 May 2026") falls within the
+ * inclusive [fromIso, toIso] window, where the bounds are "YYYY-MM-DD".
+ *
+ * The comparison is done on the calendar day rather than on Date objects: an
+ * Idox date parses to local midnight while "2026-05-19" parses to UTC midnight,
+ * and during BST that hour of slack used to drop applications received on the
+ * first day of the window. An empty or unparseable date is kept (not excluded),
+ * matching the portal's own behaviour of listing it.
+ */
+export function inDateWindow(
+  receivedDate: string,
+  fromIso: string,
+  toIso: string
+): boolean {
+  if (!receivedDate) return true;
+  const d = new Date(receivedDate);
+  if (isNaN(d.getTime())) return true;
+  const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return iso >= fromIso && iso <= toIso;
+}
+
 export class IdoxAdapter implements CouncilAdapter {
   readonly councilId: string;
   readonly councilName: string;
@@ -24,9 +46,6 @@ export class IdoxAdapter implements CouncilAdapter {
     params: SearchParams,
     onProgress?: (count: number) => void
   ): Promise<Application[]> {
-    const rangeStart = new Date(params.dateFrom);
-    const rangeEnd = new Date(params.dateTo);
-
     const raw = await searchByDateRange(
       this.baseUrl,
       params.dateFrom,
@@ -35,9 +54,9 @@ export class IdoxAdapter implements CouncilAdapter {
 
     const results: Application[] = [];
     for (const item of raw) {
-      // Weekly fetches can spill past the requested window, so trim to the exact range.
-      const date = item.receivedDate ? new Date(item.receivedDate) : null;
-      if (date && (date < rangeStart || date > rangeEnd)) continue;
+      // The validated-date search can spill past the requested window, so trim
+      // to the exact range on the application's received date.
+      if (!inDateWindow(item.receivedDate, params.dateFrom, params.dateTo)) continue;
 
       results.push(transformApplication(item, this.councilName, this.baseUrl));
     }
