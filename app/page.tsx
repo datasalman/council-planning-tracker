@@ -26,9 +26,8 @@ export default function Home() {
   const [proposalTypeFilter, setProposalTypeFilter] = useState<string[]>([]);
 
   const handleSearch = useCallback(
-    (params: SearchParams, proposalFilter: string[]) => {
+    (params: SearchParams) => {
       setLastParams(params);
-      setProposalTypeFilter(proposalFilter);
       executeSearch(params);
     },
     [executeSearch]
@@ -72,6 +71,8 @@ export default function Home() {
             <SearchPanel
               onSearch={handleSearch}
               isLoading={status === "fetching"}
+              proposalTypes={proposalTypeFilter}
+              onProposalTypesChange={setProposalTypeFilter}
             />
           </div>
         </aside>
@@ -86,6 +87,7 @@ export default function Home() {
             isFromCache={isFromCache}
             totalCount={totalCount}
             proposalTypeFilter={proposalTypeFilter}
+            onFilterChange={setProposalTypeFilter}
             onDismissError={reset}
           />
         </section>

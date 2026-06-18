@@ -44,6 +44,17 @@ export function ResultsTable({ applications, proposalTypeFilter }: ResultsTableP
     );
   }, [applications, proposalTypeFilter]);
 
+  // Jump back to the first page whenever the active filter changes, so a
+  // narrower result set doesn't leave you stranded on a now-empty page.
+  // Adjusting state during render (React's recommended pattern) instead of an
+  // effect avoids a redundant extra render.
+  const filterKey = proposalTypeFilter.join("|");
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
+    setCurrentPage(1);
+  }
+
   const { sorted, sortColumn, sortDirection, handleSort } = useSort(filtered);
 
   const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
