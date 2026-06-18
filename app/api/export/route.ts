@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const workbook = await buildExcelWorkbook(applications, params);
+    const workbook = await buildExcelWorkbook(applications);
     const buffer = await workbook.xlsx.writeBuffer();
     const filename = buildFilename(params);
 

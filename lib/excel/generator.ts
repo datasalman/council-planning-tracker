@@ -26,8 +26,7 @@ export function buildFilename(params: SearchParams): string {
 }
 
 export async function buildExcelWorkbook(
-  applications: Application[],
-  params: SearchParams
+  applications: Application[]
 ): Promise<ExcelJS.Workbook> {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "Council Planning Tracker";

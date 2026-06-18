@@ -38,7 +38,7 @@ function parseResultsHTML(html: string): RawWalthamForestApplication[] {
         html.includes("Request blocked"));
     if (isChallengePage) {
       throw new Error(
-        "Waltham Forest: WAF challenge page received — retry later"
+        "Waltham Forest: WAF challenge page received, please retry later"
       );
     }
     return results; // genuine empty result set
