@@ -1,17 +1,19 @@
-1. Additional borough adding priority list:
+Roadmap / notes
 
-- Waltham Forest
-- Hackney
-- Islington
-- Tower Hamlets
-- Camden
-- Barnet
-- Lewisham 
-- Greenwich
-- Brent 
-- Ealing
-- Southwark
+Boroughs
+  Live now (16): Barnet, Bexley, Brent, Croydon, Ealing, Enfield, Greenwich,
+  Islington, Kingston, Lewisham, Newham, Redbridge, Richmond, Southwark,
+  Tower Hamlets, Waltham Forest.
 
-2. Address split issues:
+  Still wanted, need a bespoke adapter (not Idox/Agile):
+  - Hackney  (portal is not standard Public Access)
+  - Camden   (custom planning records system)
 
-- Incorrectly split address in some cases
+Address parsing
+  - Fixed: localities embedded in street names ("Oakwood Drive") and landmark
+    names ("Golders Green Crematorium") were being mistaken for the town.
+    Covered by lib/parsers/address.test.ts.
+
+Possible next steps
+  - Simple shared-password gate (APP_PASSWORD) so the tool can go behind a login.
+  - Stannp direct-mail: pick applications, push to a mailing in test mode.
