@@ -64,15 +64,21 @@ export async function GET(request: NextRequest) {
         }
       };
 
-      try {
-        const allResults: Application[] = [];
+      const allResults: Application[] = [];
+      const failures: { borough: string; message: string }[] = [];
 
-        for (const boroughId of params.boroughs) {
+      // Each borough is fetched independently so one council being down (or
+      // changing its portal) doesn't wipe out the whole search. Failures are
+      // reported back per borough and the rest of the results still come through.
+      for (const boroughId of params.boroughs) {
+        let councilName = boroughId;
+        try {
           const adapter = getAdapter(boroughId);
+          councilName = adapter.councilName;
 
           emit({
             type: "progress",
-            borough: adapter.councilName,
+            borough: councilName,
             status: "fetching",
             count: allResults.length,
           });
@@ -80,18 +86,17 @@ export async function GET(request: NextRequest) {
           const results = await adapter.search(params, (count) => {
             emit({
               type: "progress",
-              borough: adapter.councilName,
+              borough: councilName,
               status: "fetching",
               count: allResults.length + count,
             });
           });
 
-          // Enrich missing postcodes via Nominatim (throttled, cached)
           const missing = results.filter((a) => !a.postcode).length;
           if (missing > 0) {
             emit({
               type: "progress",
-              borough: adapter.councilName,
+              borough: councilName,
               status: "enriching",
               count: allResults.length,
             });
@@ -102,21 +107,30 @@ export async function GET(request: NextRequest) {
 
           emit({
             type: "progress",
-            borough: adapter.councilName,
+            borough: councilName,
             status: "complete",
             count: allResults.length,
           });
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : "Unknown error";
+          failures.push({ borough: councilName, message });
+          emit({ type: "borough_error", borough: councilName, message });
         }
-
-        setCached(params, allResults);
-
-        emit({ type: "complete", data: allResults, total: allResults.length });
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Unknown error";
-        emit({ type: "error", message });
-      } finally {
-        controller.close();
       }
+
+      // Only cache when every borough came back, so a transient outage doesn't
+      // freeze an incomplete result set for the cache lifetime.
+      if (failures.length === 0) {
+        setCached(params, allResults);
+      }
+
+      emit({
+        type: "complete",
+        data: allResults,
+        total: allResults.length,
+        errors: failures,
+      });
+      controller.close();
     },
   });
 

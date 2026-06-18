@@ -12,11 +12,17 @@ export interface ProgressInfo {
   count: number;
 }
 
+export interface BoroughError {
+  borough: string;
+  message: string;
+}
+
 export interface SearchState {
   status: SearchStatus;
   applications: Application[];
   progress: ProgressInfo | null;
   error: string | null;
+  boroughErrors: BoroughError[];
   isFromCache: boolean;
   totalCount: number;
   completedBoroughs: number;
@@ -28,6 +34,7 @@ export function useSearch() {
     applications: [],
     progress: null,
     error: null,
+    boroughErrors: [],
     isFromCache: false,
     totalCount: 0,
     completedBoroughs: 0,
@@ -45,6 +52,7 @@ export function useSearch() {
       applications: [],
       progress: null,
       error: null,
+      boroughErrors: [],
       isFromCache: false,
       totalCount: 0,
       completedBoroughs: 0,
@@ -90,11 +98,24 @@ export function useSearch() {
                 applications: event.data as Application[],
                 progress: null,
                 error: null,
+                boroughErrors: [],
                 isFromCache: true,
                 totalCount: (event.total as number) || 0,
                 completedBoroughs: 0,
               });
               break;
+
+            case "borough_error": {
+              const failure: BoroughError = {
+                borough: event.borough as string,
+                message: event.message as string,
+              };
+              setState((s) => ({
+                ...s,
+                boroughErrors: [...s.boroughErrors, failure],
+              }));
+              break;
+            }
 
             case "progress": {
               const progStatus = event.status as "fetching" | "complete" | "enriching";
@@ -120,6 +141,7 @@ export function useSearch() {
                 applications: event.data as Application[],
                 progress: null,
                 error: null,
+                boroughErrors: (event.errors as BoroughError[]) ?? s.boroughErrors,
                 isFromCache: false,
                 totalCount: (event.total as number) || 0,
               }));
@@ -156,6 +178,7 @@ export function useSearch() {
       applications: [],
       progress: null,
       error: null,
+      boroughErrors: [],
       isFromCache: false,
       totalCount: 0,
       completedBoroughs: 0,
