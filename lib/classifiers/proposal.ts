@@ -33,6 +33,7 @@ function buildMatcher(terms: string[]): RegExp | null {
 const MATCHERS = Object.entries(DEFINITIONS).map(([category, def]) => ({
   category,
   include: buildMatcher(def.keywords),
+  patterns: (def.patterns ?? []).map((source) => new RegExp(source, "i")),
   exclude: buildMatcher(def.exclude ?? []),
 }));
 
@@ -45,9 +46,11 @@ export function classifyProposal(description: string): string[] {
   if (!description) return ["Other/Unclassified"];
 
   const matched: string[] = [];
-  for (const { category, include, exclude } of MATCHERS) {
-    if (!include) continue;
-    if (include.test(description) && !(exclude && exclude.test(description))) {
+  for (const { category, include, patterns, exclude } of MATCHERS) {
+    const hit =
+      (include?.test(description) ?? false) ||
+      patterns.some((pattern) => pattern.test(description));
+    if (hit && !(exclude && exclude.test(description))) {
       matched.push(category);
     }
   }

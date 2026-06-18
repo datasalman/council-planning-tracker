@@ -22,6 +22,8 @@ export interface CategoryDefinition {
   group: CategoryGroup;
   keywords: string[];
   exclude?: string[];
+  /** Raw case-insensitive regex sources, for matches plain keywords can't express. */
+  patterns?: string[];
 }
 
 const DEFINITIONS = categories as Record<string, CategoryDefinition>;

@@ -69,6 +69,19 @@ test("tree work is still classified, just low priority", () => {
   assert.ok(tags.includes("Trees & Hedgerows (TPO)"));
 });
 
+test("a bare tree schedule (T1, T2, ...) is recognised as tree work", () => {
+  const tags = classifyProposal("T1 Eucalyptus, T2 Copper Beech, T3 Lilac");
+  assert.ok(tags.includes("Trees & Hedgerows (TPO)"));
+});
+
+test("a single stray 'T1' reference is not read as tree work", () => {
+  const tags = classifyProposal(
+    "Discharge of conditions 3 and 4 in line with approved drawing T1"
+  );
+  assert.ok(!tags.includes("Trees & Hedgerows (TPO)"));
+  assert.ok(tags.includes("Discharge of Conditions"));
+});
+
 test("falls back to Other/Unclassified when nothing matches", () => {
   assert.deepEqual(classifyProposal("Variation of a planning obligation"), [
     "Other/Unclassified",
