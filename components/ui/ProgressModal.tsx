@@ -49,9 +49,12 @@ export function ProgressModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 border border-gray-100">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 border border-slate-100 animate-fade-in-up">
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center"
+            style={{ background: "linear-gradient(135deg, var(--accent-soft), var(--violet))" }}
+          >
             <svg className="w-5 h-5 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
@@ -78,10 +81,10 @@ export function ProgressModal({
               <div
                 key={id}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${status === "fetching"
-                    ? "bg-blue-50 text-blue-700"
+                    ? "bg-indigo-50 text-indigo-700"
                     : status === "complete"
-                      ? "bg-gray-50 text-gray-500"
-                      : "text-gray-400"
+                      ? "bg-slate-50 text-slate-500"
+                      : "text-slate-400"
                   }`}
               >
                 {/* Status icon */}
@@ -91,10 +94,10 @@ export function ProgressModal({
                   </svg>
                 )}
                 {status === "fetching" && (
-                  <span className="inline-block w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin shrink-0" />
+                  <span className="inline-block w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin shrink-0" />
                 )}
                 {status === "pending" && (
-                  <span className="w-4 h-4 rounded-full border-2 border-gray-300 shrink-0" />
+                  <span className="w-4 h-4 rounded-full border-2 border-slate-300 shrink-0" />
                 )}
 
                 <span className={status === "fetching" ? "font-medium" : ""}>

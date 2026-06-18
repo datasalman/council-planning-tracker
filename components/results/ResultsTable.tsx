@@ -56,22 +56,22 @@ export function ResultsTable({ applications, proposalTypeFilter }: ResultsTableP
 
   if (applications.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-        <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
-          <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+        <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center mb-4">
+          <svg className="w-8 h-8 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
         </div>
-        <p className="text-sm font-medium text-gray-500 mb-1">No results yet</p>
-        <p className="text-xs text-gray-400">Select boroughs & dates, then hit Search</p>
+        <p className="text-sm font-semibold text-slate-600 mb-1">No results yet</p>
+        <p className="text-xs text-slate-400">Pick your boroughs and a date range, then hit Search</p>
       </div>
     );
   }
 
   if (filtered.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-        <p className="text-sm">No applications match the selected proposal types.</p>
+      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+        <p className="text-sm">Nothing matches the proposal types you&apos;ve selected.</p>
       </div>
     );
   }
@@ -80,7 +80,7 @@ export function ResultsTable({ applications, proposalTypeFilter }: ResultsTableP
     <div className="flex flex-col h-full">
       <div className="overflow-x-auto flex-1">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-slate-800 sticky top-0">
+          <thead className="bg-slate-900 sticky top-0 z-10">
             <tr>
               <ColumnHeader label="Reference" column="reference_number" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
               <ColumnHeader label="Date" column="registration_date" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
@@ -96,15 +96,15 @@ export function ResultsTable({ applications, proposalTypeFilter }: ResultsTableP
             {pageSlice.map((app, index) => (
               <tr
                 key={`${app.reference_number}-${index}`}
-                className={`transition-colors duration-150 ${index % 2 === 0 ? "bg-white hover:bg-blue-50/50" : "bg-gray-50/50 hover:bg-blue-50/50"}`}
+                className={`transition-colors duration-150 ${index % 2 === 0 ? "bg-white hover:bg-indigo-50/60" : "bg-slate-50/60 hover:bg-indigo-50/60"}`}
               >
-                <td className="px-3 py-3 text-xs font-mono text-blue-600 whitespace-nowrap">
+                <td className="px-3 py-3 text-xs font-mono text-indigo-600 whitespace-nowrap">
                   {app.url ? (
                     <a
                       href={app.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:underline decoration-blue-300"
+                      className="hover:underline decoration-indigo-300"
                     >
                       {app.reference_number}
                     </a>

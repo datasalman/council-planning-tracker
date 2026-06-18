@@ -131,7 +131,7 @@ export function DateRangePicker({
             value={formatForInput(dateFrom)}
             max={today}
             onChange={(e) => handleFromChange(e.target.value)}
-            className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
         <div>
@@ -142,7 +142,7 @@ export function DateRangePicker({
             min={dateFrom}
             max={today}
             onChange={(e) => handleToChange(e.target.value)}
-            className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
       </div>
@@ -159,7 +159,7 @@ export function DateRangePicker({
                 onChange(from, to);
               }}
               className={`text-xs px-2.5 py-1 rounded-full transition-all duration-200 ${active
-                  ? "bg-blue-500 text-white shadow-sm"
+                  ? "bg-indigo-500 text-white shadow-sm"
                   : "bg-white/10 hover:bg-white/20 text-white/60 hover:text-white/80"
                 }`}
             >
