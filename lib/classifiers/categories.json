@@ -133,6 +133,9 @@
       "tree preservation", "tpo", "works to tree", "crown reduction",
       "felling", "hedgerow", "tree works", "tree surgery",
       "crown lift", "pollarding", "dead wooding", "tree removal"
+    ],
+    "patterns": [
+      "(?<![a-z0-9])t\\d+(?![a-z0-9])[\\s\\S]*?(?<![a-z0-9])t\\d+(?![a-z0-9])"
     ]
   },
   "Discharge of Conditions": {
