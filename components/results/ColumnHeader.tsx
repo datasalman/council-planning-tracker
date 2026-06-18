@@ -29,7 +29,7 @@ export function ColumnHeader({
     >
       <div className="flex items-center gap-1">
         {label}
-        <span className={isActive ? "text-blue-300" : "text-white/30"}>
+        <span className={isActive ? "text-indigo-300" : "text-white/30"}>
           {isActive ? (sortDirection === "asc" ? "↑" : "↓") : "↕"}
         </span>
       </div>

@@ -12,12 +12,9 @@ export function SearchButton({ onClick, disabled, isLoading }: SearchButtonProps
       type="button"
       onClick={onClick}
       disabled={disabled || isLoading}
-      className="w-full px-4 py-3 text-white font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-      style={{
-        background: disabled || isLoading ? "#d1d5db" : "linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)",
-        boxShadow: disabled || isLoading ? "none" : "0 2px 8px rgba(37,99,235,0.3)",
-        transition: "all 0.2s ease",
-      }}
+      className={`w-full px-4 py-3 text-white font-semibold rounded-xl flex items-center justify-center gap-2 disabled:cursor-not-allowed ${
+        disabled || isLoading ? "bg-slate-600/60 opacity-70" : "btn-primary"
+      }`}
     >
       {isLoading ? (
         <>

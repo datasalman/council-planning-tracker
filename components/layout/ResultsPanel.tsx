@@ -5,13 +5,14 @@ import { SearchParams } from "@/lib/adapters/types";
 import { ResultsTable } from "@/components/results/ResultsTable";
 import { ExportButton } from "@/components/results/ExportButton";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
-import { SearchStatus } from "@/hooks/useSearch";
+import { BoroughError, SearchStatus } from "@/hooks/useSearch";
 
 interface ResultsPanelProps {
   applications: Application[];
   params: SearchParams | null;
   status: SearchStatus;
   error: string | null;
+  boroughErrors: BoroughError[];
   isFromCache: boolean;
   totalCount: number;
   proposalTypeFilter: string[];
@@ -40,9 +41,9 @@ function CategoryBreakdown({ applications }: { applications: Application[] }) {
   };
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-1.5">
       {sorted.map(([cat, count]) => {
-        const colorClass = categoryColors[cat] ?? "bg-gray-100 text-gray-600";
+        const colorClass = categoryColors[cat] ?? "bg-slate-100 text-slate-600";
         return (
           <span key={cat} className={`text-xs font-medium px-2.5 py-1 rounded-full ${colorClass}`}>
             {cat}: <strong>{count}</strong>
@@ -53,11 +54,30 @@ function CategoryBreakdown({ applications }: { applications: Application[] }) {
   );
 }
 
+function PartialFailureBanner({ failures }: { failures: BoroughError[] }) {
+  if (failures.length === 0) return null;
+  return (
+    <div className="surface-card rounded-xl px-4 py-3 flex items-start gap-3 animate-fade-in-up">
+      <svg className="w-5 h-5 mt-0.5 shrink-0 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+      </svg>
+      <div className="text-sm">
+        <p className="font-semibold text-slate-800">
+          Couldn&apos;t reach {failures.length} {failures.length === 1 ? "council" : "councils"}
+        </p>
+        <p className="text-slate-500 mt-0.5">
+          {failures.map((f) => f.borough).join(", ")} didn&apos;t respond. The results below cover the rest.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function ResultsPanel({
   applications,
   params,
-  status,
   error,
+  boroughErrors,
   isFromCache,
   totalCount,
   proposalTypeFilter,
@@ -75,22 +95,24 @@ export function ResultsPanel({
 
   return (
     <div className="h-full flex flex-col gap-3">
-      {/* Stats bar */}
       {applications.length > 0 && (
-        <div className="rounded-xl p-4 space-y-2" style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.5)", boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
+        <div className="surface-card rounded-xl p-4 space-y-2.5 animate-fade-in-up">
           <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-3">
-              <h2 className="text-lg font-bold text-gray-900">
-                {displayCount.toLocaleString()} Applications{hasFilter ? " Match" : " Found"}
+            <div className="flex items-baseline gap-2.5">
+              <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+                {displayCount.toLocaleString()}
               </h2>
+              <span className="text-sm font-medium text-slate-500">
+                {hasFilter ? "matching applications" : "applications found"}
+              </span>
               {hasFilter && displayCount !== totalCount && (
-                <span className="text-xs text-gray-400 font-normal">
+                <span className="text-xs text-slate-400">
                   of {totalCount.toLocaleString()} total
                 </span>
               )}
               {isFromCache && (
-                <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full font-medium">
-                  From cache
+                <span className="text-xs bg-indigo-50 text-indigo-600 px-2.5 py-0.5 rounded-full font-medium border border-indigo-100">
+                  Cached
                 </span>
               )}
             </div>
@@ -105,13 +127,10 @@ export function ResultsPanel({
         </div>
       )}
 
-      {/* Error */}
-      {error && (
-        <ErrorBanner message={error} onDismiss={onDismissError} />
-      )}
+      {error && <ErrorBanner message={error} onDismiss={onDismissError} />}
+      <PartialFailureBanner failures={boroughErrors} />
 
-      {/* Results table */}
-      <div className="flex-1 rounded-xl overflow-hidden min-h-0" style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.5)", boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
+      <div className="surface-card flex-1 rounded-xl overflow-hidden min-h-0">
         <ResultsTable
           applications={applications}
           proposalTypeFilter={proposalTypeFilter}

@@ -45,7 +45,7 @@ export function BoroughSelector({ selected, onChange }: BoroughSelectorProps) {
           <button
             type="button"
             onClick={selectAll}
-            className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+            className="text-xs text-indigo-300 hover:text-indigo-200 transition-colors"
           >
             Select All
           </button>
@@ -69,13 +69,13 @@ export function BoroughSelector({ selected, onChange }: BoroughSelectorProps) {
             return (
               <span
                 key={id}
-                className="inline-flex items-center gap-1 bg-blue-500/20 text-blue-300 text-xs font-medium px-2 py-0.5 rounded-full border border-blue-500/20"
+                className="inline-flex items-center gap-1 bg-indigo-500/20 text-indigo-200 text-xs font-medium px-2 py-0.5 rounded-full border border-indigo-400/20"
               >
                 {council?.name}
                 <button
                   type="button"
                   onClick={() => toggleBorough(id)}
-                  className="hover:text-blue-200 transition-colors"
+                  className="hover:text-white transition-colors"
                 >
                   ×
                 </button>

@@ -49,7 +49,7 @@ export function ProposalTypeFilter({ selected, onChange }: ProposalTypeFilterPro
           <button
             type="button"
             onClick={selectAll}
-            className={`text-xs transition-colors ${allSelected ? "text-white/30" : "text-blue-400 hover:text-blue-300"}`}
+            className={`text-xs transition-colors ${allSelected ? "text-white/30" : "text-indigo-300 hover:text-indigo-200"}`}
           >
             Select All
           </button>
@@ -63,9 +63,9 @@ export function ProposalTypeFilter({ selected, onChange }: ProposalTypeFilterPro
           </button>
         </div>
       </div>
-      <p className="text-xs text-white/30 mt-1">
+      <p className="text-xs text-white/40 mt-1.5">
         {selected.length === 0
-          ? "No filter — all applications shown"
+          ? "No filter applied, showing every application"
           : `${selected.length} of ${ALL_CATEGORIES.length} selected`}
       </p>
     </div>
