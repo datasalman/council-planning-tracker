@@ -35,7 +35,7 @@ export class IdoxAdapter implements CouncilAdapter {
 
     const results: Application[] = [];
     for (const item of raw) {
-      // Filter to exact date range — weekly fetches can include edge-of-week results
+      // Weekly fetches can spill past the requested window, so trim to the exact range.
       const date = item.receivedDate ? new Date(item.receivedDate) : null;
       if (date && (date < rangeStart || date > rangeEnd)) continue;
 

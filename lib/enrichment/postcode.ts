@@ -1,12 +1,11 @@
 import axios from "axios";
 import { Application } from "../types";
 
-// --- In-process postcode cache ---
-// Keys are lowercased address query strings → resolved postcode (or "" if not found).
-// Persists for the lifetime of the server process.
+// Lowercased address query to resolved postcode (or "" when nothing was found),
+// kept for the lifetime of the server process so repeat lookups are free.
 const cache = new Map<string, string>();
 
-// --- Throttle (Nominatim policy: max 1 req/sec) ---
+// Nominatim's usage policy allows at most one request per second.
 let lastRequestAt = 0;
 const MIN_GAP_MS = 1_100;
 
@@ -36,7 +35,7 @@ interface PostcodesIoResult {
 
 /**
  * Ask postcodes.io for the nearest Royal Mail postcode to a lat/lon coordinate.
- * postcodes.io uses PAF data and has near-100% UK coverage — no throttle needed.
+ * It uses PAF data with near-complete UK coverage and needs no throttling.
  */
 async function nearestPostcode(lat: string, lon: string): Promise<string> {
   try {
@@ -78,15 +77,15 @@ async function fetchPostcode(query: string): Promise<string> {
 
     const hit = res.data?.[0];
 
-    // Primary: Nominatim has postcode in OSM data
+    // Best case: OpenStreetMap already carries the postcode.
     const osmPostcode = hit?.address?.postcode ?? "";
     if (osmPostcode) {
       cache.set(key, osmPostcode);
       return osmPostcode;
     }
 
-    // Fallback: Nominatim has coordinates but no postcode — use postcodes.io
-    // (Royal Mail PAF data — much more complete than OSM for postcodes)
+    // OSM often has coordinates but no postcode. Royal Mail data via postcodes.io
+    // is far more complete, so resolve the nearest one from the lat/lon instead.
     if (hit?.lat && hit?.lon) {
       const pc = await nearestPostcode(hit.lat, hit.lon);
       cache.set(key, pc);

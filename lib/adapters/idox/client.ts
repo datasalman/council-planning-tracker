@@ -19,9 +19,7 @@ export interface RawIdoxApplication {
   status: string;
 }
 
-// ─── Date helpers ────────────────────────────────────────────────────────────
-
-/** ISO YYYY-MM-DD → Idox DD/MM/YYYY */
+/** ISO YYYY-MM-DD to Idox DD/MM/YYYY */
 function isoToIdoxSlash(iso: string): string {
   const [y, m, d] = iso.split("-");
   return `${d}/${m}/${y}`;
@@ -49,8 +47,6 @@ function dateChunks(dateFrom: string, dateTo: string, maxDays: number = 30): [st
   }
   return chunks;
 }
-
-// ─── HTML parser ─────────────────────────────────────────────────────────────
 
 function stripHtml(s: string): string {
   return s.replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
@@ -91,7 +87,7 @@ function parseResultsHtml(html: string): RawIdoxApplication[] {
     );
     const meta = metaMatch ? stripHtml(metaMatch[1]) : "";
 
-    // Reference: "Ref. No: 26/0425" — from metaInfo (most reliable)
+    // The reference ("Ref. No: 26/0425") is most reliable when read from metaInfo.
     const refMatch = meta.match(/Ref\.?\s*No\.?\s*:?\s*([A-Z0-9][^\s|,]+)/i);
     const reference = refMatch?.[1].trim() ?? "";
 
@@ -143,14 +139,12 @@ function extractExtraPageNums(html: string): number[] {
   return Array.from(nums).sort((a, b) => a - b);
 }
 
-// ─── HTTP fetching ────────────────────────────────────────────────────────────
-
 async function fetchAdvancedSearchChunk(
   baseUrl: string,
   startSlash: string,
   endSlash: string
 ): Promise<RawIdoxApplication[]> {
-  // 1. Establish session
+  // Public Access needs a session cookie and CSRF token before it accepts a search.
   const sessionResp = await client.get<string>(`${baseUrl}/search.do`, {
     params: { action: "advanced" },
     headers: { "User-Agent": UA, Accept: "text/html,application/xhtml+xml" },
@@ -165,7 +159,7 @@ async function fetchAdvancedSearchChunk(
   const csrfMatch = sessionResp.data.match(/name="_csrf"\s+value="([^"]+)"/);
   const csrfToken = csrfMatch ? csrfMatch[1] : "";
 
-  // 2. Submit advanced search POST
+  // Submit the advanced search for the validated-date window.
   const params = new URLSearchParams();
   params.append("date(applicationValidatedStart)", startSlash);
   params.append("date(applicationValidatedEnd)", endSlash);
@@ -189,7 +183,7 @@ async function fetchAdvancedSearchChunk(
 
   const results = parseResultsHtml(firstResp.data);
 
-  // 3. Fetch any remaining pages
+  // Walk any further result pages the first response linked to.
   const extraPages = extractExtraPageNums(firstResp.data);
   for (const pgno of extraPages) {
     try {
@@ -215,8 +209,6 @@ async function fetchAdvancedSearchChunk(
   return results;
 }
 
-// ─── Public API ───────────────────────────────────────────────────────────────
-
 export async function searchByDateRange(
   baseUrl: string,
   dateFrom: string,
@@ -236,8 +228,8 @@ export async function searchByDateRange(
           results.push(r);
         }
       }
-    } catch (err) {
-      // skip failed chunks, continue with the rest
+    } catch {
+      // A failed chunk shouldn't sink the whole search; carry on with the rest.
     }
   }
 

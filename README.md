@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Council Planning Tracker
 
-## Getting Started
+Every week, thousands of homeowners across London apply to their local council for
+planning permission: a loft conversion, a rear extension, a new build, a change of
+use. Those applications are public, but they're scattered across dozens of council
+websites, each with its own clunky search and its own quirks. For a builder,
+architect, or any trade that wants to reach homeowners right when they're planning
+work, finding them means checking site after site by hand.
 
-First, run the development server:
+Council Planning Tracker pulls all of that into one place. Pick the boroughs you
+cover, choose a date range, and it fetches every newly registered application,
+cleans up the messy address data, sorts it by the type of work, and lets you export
+the lot to Excel. What used to be an afternoon of copy-pasting becomes a single
+search.
+
+<!-- Add a screenshot of the running app here, e.g. ![Council Planning Tracker](docs/screenshot.png) -->
+
+## What it does
+
+- **Searches many boroughs at once.** Sixteen London boroughs are supported today,
+  spanning three different planning-portal systems behind a single interface.
+- **Categorises the work.** Each application is tagged by job type (loft conversion,
+  rear extension, new build, basement, change of use, and so on) so you can filter
+  down to the jobs you actually want.
+- **Fills in the gaps.** Addresses from council portals are inconsistent, and many
+  are missing a postcode. The app parses each address into clean fields and looks up
+  missing postcodes so the data is ready to use.
+- **Exports to Excel.** One click turns the results into a formatted spreadsheet you
+  can drop straight into a CRM or mail-merge.
+- **Streams results live.** Searches run borough by borough with a live progress
+  view, and if one council's site is down the others still come through.
+
+## Supported boroughs
+
+Barnet, Bexley, Brent, Croydon, Ealing, Enfield, Greenwich, Islington, Kingston
+upon Thames, Lewisham, Newham, Redbridge, Richmond upon Thames, Southwark, Tower
+Hamlets, and Waltham Forest.
+
+## How it works
+
+Councils don't share a standard, so each planning portal is wrapped in an *adapter*
+that exposes the same simple `search()` interface. Adding a council is usually just
+a matter of registering it with the right adapter:
+
+- **Agile Applications** portals expose a JSON API.
+- **Idox Public Access** portals (the most common) are scraped from their HTML
+  advanced-search results, handling sessions, CSRF tokens, and pagination.
+- Anything bespoke gets its own adapter, like the custom one for Waltham Forest.
+
+A search streams back to the browser over Server-Sent Events, so you see each
+borough complete in real time instead of staring at a spinner. Results are cached in
+memory for a few minutes, and missing postcodes are resolved through OpenStreetMap's
+Nominatim with a Royal Mail fallback via postcodes.io.
+
+The stack is Next.js (App Router) and React with TypeScript, styled with Tailwind.
+Excel export is handled server-side with ExcelJS.
+
+## Running it locally
+
+You'll need Node 20 or newer.
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Configuration is optional; copy `.env.example` to `.env.local` if you want to tweak
+timeouts, caching, or the postcode-lookup limit.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Tests
 
-## Learn More
+The address parser does the trickiest work, so it has its own test suite:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm test
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deploying
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The app runs as a normal Node server and is set up to deploy to Railway out of the
+box (`railway.json`). `npm run build` followed by `npm start` works on any host that
+can run a long-lived Node process.
 
-## Deploy on Vercel
+## Roadmap
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+A couple of boroughs (Hackney, Camden) run non-standard portals that need their own
+adapters. Beyond more coverage, the natural next steps are a login so the tool can
+be shared, and a direct-mail integration to post leaflets to selected addresses
+without leaving the app.

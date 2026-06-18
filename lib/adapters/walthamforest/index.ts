@@ -3,7 +3,7 @@ import { Application } from "../../types";
 import { searchByDateRange, healthCheck } from "./client";
 import { transformApplication } from "./transformer";
 
-// Portal caps results at 50 per request — use 7-day chunks to stay well under
+// The portal caps each request at 50 results, so fetch in 7-day chunks to stay under it.
 const CHUNK_DAYS = 7;
 
 function addDays(date: Date, days: number): Date {
