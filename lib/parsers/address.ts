@@ -65,13 +65,20 @@ function findRightmostLocality(
   for (const loc of LOCALITIES_SORTED) {
     if (loc.length < 3) continue;
 
-    let from = upper.length;
+    // Scan right-to-left for a whole-word occurrence. The search position has
+    // to drop below zero to stop: `lastIndexOf(loc, -1)` keeps returning 0, so
+    // a locality that sits at index 0 without being a standalone word (e.g.
+    // "Ham" in "Hampton Court") would otherwise spin here forever.
     let idx = -1;
-    while (true) {
-      idx = upper.lastIndexOf(loc, from);
-      if (idx < 0) break;
-      if (isWholeWord(upper, loc, idx)) break;
-      from = idx - 1;
+    let from = upper.length;
+    while (from >= 0) {
+      const found = upper.lastIndexOf(loc, from);
+      if (found < 0) break;
+      if (isWholeWord(upper, loc, found)) {
+        idx = found;
+        break;
+      }
+      from = found - 1;
     }
     if (idx < 0) continue;
 

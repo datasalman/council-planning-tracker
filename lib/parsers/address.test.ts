@@ -78,6 +78,14 @@ const cases: Array<{
     raw: "",
     expect: { address_line_1: "", town: "", postcode: "" },
   },
+  {
+    // A locality ("Ham") sitting at the very start of a segment ("Hampton
+    // Court") without being a standalone word used to send the parser into an
+    // infinite loop. This case completing at all is the real assertion.
+    name: "locality at the start of a segment does not hang the parser",
+    raw: "Teddington Weir, Teddington LockAnd Molesey Weir, Hampton Court",
+    expect: { address_line_1: "Teddington Weir", postcode: "" },
+  },
 ];
 
 for (const c of cases) {
