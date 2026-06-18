@@ -7,6 +7,8 @@ import {
 
 const POSTCODE_REGEX = /([A-Z]{1,2}[0-9][0-9A-Z]?)\s*([0-9][A-Z]{2})/i;
 
+// Planning portals often prefix the site description onto the address
+// ("Land at 12 High Street"). Strip these so the address starts at the premises.
 const STRIP_PREFIXES: RegExp[] = [
   /^DEVELOPMENT\s+AT[\s,]+/i,
   /^SITE\s+AT[\s,]+/i,
@@ -32,9 +34,60 @@ function toTitleCase(s: string): string {
   return s.toLowerCase().replace(/(?:^|\s)(\S)/g, (m) => m.toUpperCase());
 }
 
-/** Return true if the character is an ASCII letter (A-Z after toUpperCase). */
 function isLetter(ch: string): boolean {
   return ch >= "A" && ch <= "Z";
+}
+
+// True when `loc` sits at `idx` as a standalone word (not part of a longer word).
+function isWholeWord(haystack: string, loc: string, idx: number): boolean {
+  const before = idx > 0 ? haystack[idx - 1] : " ";
+  const after =
+    idx + loc.length < haystack.length ? haystack[idx + loc.length] : " ";
+  return !isLetter(before) && !isLetter(after);
+}
+
+// Find the locality that sits furthest to the right in `part` (closest to where
+// the postcode was). Idox-style addresses are space-delimited with the town just
+// before the postcode, so the rightmost match is almost always the real town.
+// Matching the longest name anywhere in the string instead would pick up street
+// names like "Oakwood Drive" by mistake. Returns the match and the text before it.
+function findRightmostLocality(
+  part: string
+): { town: string; index: number } | null {
+  const upper = part.toUpperCase();
+  let bestIdx = -1;
+  let bestEnd = -1;
+  let bestLoc = "";
+
+  // Compare matches by where they end, so the one closest to the postcode wins.
+  // When two overlap ("South Woodford" contains "Woodford") they share an end
+  // position and the longer name is kept.
+  for (const loc of LOCALITIES_SORTED) {
+    if (loc.length < 3) continue;
+
+    let from = upper.length;
+    let idx = -1;
+    while (true) {
+      idx = upper.lastIndexOf(loc, from);
+      if (idx < 0) break;
+      if (isWholeWord(upper, loc, idx)) break;
+      from = idx - 1;
+    }
+    if (idx < 0) continue;
+
+    const end = idx + loc.length;
+    if (end > bestEnd || (end === bestEnd && loc.length > bestLoc.length)) {
+      bestEnd = end;
+      bestIdx = idx;
+      bestLoc = loc;
+    }
+  }
+
+  if (bestIdx < 0) return null;
+  return {
+    town: LOCALITY_PROPER_CASE.get(bestLoc) ?? toTitleCase(bestLoc),
+    index: bestIdx,
+  };
 }
 
 export function parseAddress(raw: string): AddressParsed {
@@ -42,22 +95,18 @@ export function parseAddress(raw: string): AddressParsed {
     return { address_line_1: "", town: "", postcode: "" };
   }
 
-  // Step 1: Extract postcode
   const postcodeMatch = raw.match(POSTCODE_REGEX);
   const postcode = postcodeMatch
     ? `${postcodeMatch[1].toUpperCase()} ${postcodeMatch[2].toUpperCase()}`
     : "";
 
-  // Remove postcode and tidy trailing punctuation/whitespace
   let cleaned = raw
     .replace(POSTCODE_REGEX, "")
     .trim()
     .replace(/[,\s]+$/, "")
     .trim();
 
-  // Step 2: Strip leading-prefix phrases
-  // Loop until stable so stacked prefixes like "Land At Development At …"
-  // are fully removed in multiple passes.
+  // Loop so stacked prefixes ("Land at Site at ...") are removed in full.
   let prev = "";
   do {
     prev = cleaned;
@@ -66,7 +115,6 @@ export function parseAddress(raw: string): AddressParsed {
     }
   } while (cleaned !== prev);
 
-  // Step 3: Split into comma-delimited parts
   const parts = cleaned
     .split(",")
     .map((p) => p.trim())
@@ -76,12 +124,13 @@ export function parseAddress(raw: string): AddressParsed {
     return { address_line_1: "", town: "", postcode };
   }
 
-  // Step 4: Find town — exact part match, searching from end
   let town = "";
   let townPartIndex = -1;
   let isEmbedded = false;
-  let preEmbedded = ""; // address text that precedes an embedded locality
+  let preEmbedded = "";
 
+  // First choice: a whole comma-separated segment that is exactly a locality
+  // (the clean case, e.g. "106, The Glade, Ilford"). Search from the end.
   for (let i = parts.length - 1; i >= 0; i--) {
     const upper = parts[i].toUpperCase().trim();
     if (LONDON_LOCALITIES_SET.has(upper)) {
@@ -91,56 +140,37 @@ export function parseAddress(raw: string): AddressParsed {
     }
   }
 
-  // Step 5: Embedded match — locality appears as whole words inside a longer part
-  // LOCALITIES_SORTED is longest-first so "South Woodford" beats "Woodford".
+  // Otherwise look for a locality embedded inside a segment, taking the
+  // rightmost segment that yields one. Skip a match that would leave no address
+  // text in front of it, which means the "locality" is really the start of a
+  // building or landmark name (e.g. "Golders Green Crematorium ...").
   if (!town) {
-    outer: for (let i = parts.length - 1; i >= 0; i--) {
-      const partUpper = parts[i].toUpperCase();
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const match = findRightmostLocality(parts[i]);
+      if (!match) continue;
 
-      for (const loc of LOCALITIES_SORTED) {
-        // Skip very short tokens to avoid false matches ("Lee" etc. are fine;
-        // the boundary check protects against substring collisions).
-        if (loc.length < 3) continue;
+      const before = parts[i].slice(0, match.index).replace(/[,\s]+$/, "").trim();
+      const earlierText = parts.slice(0, i).some((p) => p.length > 0);
+      if (!before && !earlierText) continue;
 
-        const idx = partUpper.indexOf(loc);
-        if (idx < 0) continue;
-
-        // Whole-word boundary: character before and after must not be a letter
-        const charBefore = idx > 0 ? partUpper[idx - 1] : " ";
-        const charAfter =
-          idx + loc.length < partUpper.length
-            ? partUpper[idx + loc.length]
-            : " ";
-        if (isLetter(charBefore) || isLetter(charAfter)) continue;
-
-        // Valid match — extract locality and the address fragment before it
-        town = LOCALITY_PROPER_CASE.get(loc) ?? toTitleCase(loc);
-        townPartIndex = i;
-        isEmbedded = true;
-        preEmbedded = parts[i]
-          .slice(0, idx)
-          .replace(/[,\s]+$/, "")
-          .trim();
-        break outer;
-      }
+      town = match.town;
+      townPartIndex = i;
+      isEmbedded = true;
+      preEmbedded = before;
+      break;
     }
   }
 
-  // Step 6: Build address lines
   let addressParts: string[];
-
   if (townPartIndex < 0) {
-    // No town found — use all parts as address
     addressParts = [...parts];
   } else if (isEmbedded) {
-    // Town was embedded in a part — replace that part with the pre-locality fragment
     addressParts = [
       ...parts.slice(0, townPartIndex),
       ...(preEmbedded ? [preEmbedded] : []),
       ...parts.slice(townPartIndex + 1),
     ];
   } else {
-    // Exact part match — drop the town part entirely
     addressParts = parts.filter((_, i) => i !== townPartIndex);
   }
 
