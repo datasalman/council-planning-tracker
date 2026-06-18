@@ -20,8 +20,11 @@ search.
 - **Searches many boroughs at once.** Sixteen London boroughs are supported today,
   spanning three different planning-portal systems behind a single interface.
 - **Categorises the work.** Each application is tagged by job type (loft conversion,
-  rear extension, new build, basement, change of use, and so on) so you can filter
-  down to the jobs you actually want.
+  rear extension, new build, basement, change of use, and so on) using whole-word
+  keyword matching, so a road called "A12" doesn't get mistaken for a Class A1 shop.
+  The categories are grouped by how relevant they are to a builder, and a "buildable
+  jobs only" toggle hides the admin noise (tree works, telecoms masts, advert
+  consent) in one click.
 - **Fills in the gaps.** Addresses from council portals are inconsistent, and many
   are missing a postcode. The app parses each address into clean fields and looks up
   missing postcodes so the data is ready to use.
@@ -85,7 +88,17 @@ can run a long-lived Node process.
 
 ## Roadmap
 
-A couple of boroughs (Hackney, Camden) run non-standard portals that need their own
-adapters. Beyond more coverage, the natural next steps are a login so the tool can
-be shared, and a direct-mail integration to post leaflets to selected addresses
-without leaving the app.
+What's coming next:
+
+- **Sign in with Google.** Accounts so the tool can be shared, with each user's
+  boroughs and preferences kept separate.
+- **Send leaflets without leaving the app.** A [Stannp](https://www.stannp.com/)
+  integration to pick a set of applications and post a physical leaflet straight to
+  those addresses, in test mode first.
+- **Email digests and saved searches.** Save a borough-and-job-type search and get a
+  weekly email when new matching applications come in, so you don't have to remember
+  to come back and re-run it.
+
+Beyond that, a couple of boroughs (Hackney, Camden) run non-standard portals that
+need their own adapters, and wider coverage across the rest of London is the longer
+game.
