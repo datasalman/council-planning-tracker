@@ -25,7 +25,7 @@ function isoToIdoxSlash(iso: string): string {
   return `${d}/${m}/${y}`;
 }
 
-/** Break [dateFrom, dateTo] into chunks of max `maxDays` days. Returns inclusive pairs [start, end]. */
+/** Break [dateFrom, dateTo] into chunks of max `maxDays` days. Returns inclusive ISO pairs [start, end]. */
 function dateChunks(dateFrom: string, dateTo: string, maxDays: number = 30): [string, string][] {
   const start = new Date(dateFrom);
   const end = new Date(dateTo);
@@ -39,14 +39,36 @@ function dateChunks(dateFrom: string, dateTo: string, maxDays: number = 30): [st
       chunkEnd = new Date(end);
     }
     chunks.push([
-      isoToIdoxSlash(cur.toISOString().slice(0, 10)),
-      isoToIdoxSlash(chunkEnd.toISOString().slice(0, 10))
+      cur.toISOString().slice(0, 10),
+      chunkEnd.toISOString().slice(0, 10)
     ]);
     cur = new Date(chunkEnd);
     cur.setDate(cur.getDate() + 1);
   }
   return chunks;
 }
+
+/** Add `days` to an ISO date, returning a new ISO date. */
+function addDaysIso(iso: string, days: number): string {
+  const d = new Date(iso);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Midpoint ISO date of an inclusive [start, end] window (rounds down). */
+function midpointIso(startIso: string, endIso: string): string {
+  const start = new Date(startIso).getTime();
+  const end = new Date(endIso).getTime();
+  return new Date(start + Math.floor((end - start) / 2)).toISOString().slice(0, 10);
+}
+
+// Idox refuses to list a result set above its configured limit, returning this
+// message instead of results. The caller narrows the date window when it sees it.
+const TOO_MANY_RE = /too many results/i;
+
+// Safety cap on how many result pages we'll walk for a single window (~10 per
+// page). High enough for any sane date window, low enough to bound a runaway.
+const MAX_PAGES = 100;
 
 function stripHtml(s: string): string {
   return s.replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
@@ -127,23 +149,17 @@ function parseResultsHtml(html: string): RawIdoxApplication[] {
   return results;
 }
 
-/** Extract page numbers > 1 from pagination links in HTML. */
-function extractExtraPageNums(html: string): number[] {
-  const nums = new Set<number>();
-  const re = /searchCriteria\.page=(\d+)/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(html)) !== null) {
-    const n = parseInt(m[1], 10);
-    if (n > 1) nums.add(n);
-  }
-  return Array.from(nums).sort((a, b) => a - b);
+interface ChunkResult {
+  /** True when Idox reported the window held too many results to list. */
+  tooMany: boolean;
+  results: RawIdoxApplication[];
 }
 
 async function fetchAdvancedSearchChunk(
   baseUrl: string,
   startSlash: string,
   endSlash: string
-): Promise<RawIdoxApplication[]> {
+): Promise<ChunkResult> {
   // Public Access needs a session cookie and CSRF token before it accepts a search.
   const sessionResp = await client.get<string>(`${baseUrl}/search.do`, {
     params: { action: "advanced" },
@@ -181,16 +197,41 @@ async function fetchAdvancedSearchChunk(
     }
   );
 
-  const results = parseResultsHtml(firstResp.data);
+  if (TOO_MANY_RE.test(firstResp.data)) {
+    return { tooMany: true, results: [] };
+  }
 
-  // Walk any further result pages the first response linked to.
-  const extraPages = extractExtraPageNums(firstResp.data);
-  for (const pgno of extraPages) {
+  const results: RawIdoxApplication[] = [];
+  const seen = new Set<string>();
+  const collect = (html: string): number => {
+    let added = 0;
+    for (const r of parseResultsHtml(html)) {
+      const key = r.keyVal || r.reference;
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        results.push(r);
+        added++;
+      }
+    }
+    return added;
+  };
+
+  collect(firstResp.data);
+
+  // Walk result pages in order until one adds nothing new. Reading the page
+  // links off the first response (the old approach) topped out at page 10, so
+  // anything past ~100 results in a busy borough was silently dropped. Pages
+  // beyond the linked window are reachable directly, so step through them. A
+  // one-off page error (a slow portal dropping a request) is skipped rather
+  // than ending the walk early; only a run of failures, i.e. a dead session,
+  // stops it.
+  let failures = 0;
+  for (let pg = 2; pg <= MAX_PAGES; pg++) {
     try {
       const pageResp = await client.get<string>(
         `${baseUrl}/pagedSearchResults.do`,
         {
-          params: { action: "page", "searchCriteria.page": pgno },
+          params: { action: "page", "searchCriteria.page": pg },
           headers: {
             "User-Agent": UA,
             Accept: "text/html,application/xhtml+xml",
@@ -200,13 +241,38 @@ async function fetchAdvancedSearchChunk(
           responseType: "text",
         }
       );
-      results.push(...parseResultsHtml(pageResp.data));
+      failures = 0;
+      if (collect(pageResp.data) === 0) break;
     } catch {
-      break; // pagination failure → return what we have
+      if (++failures >= 3) break;
     }
   }
 
-  return results;
+  return { tooMany: false, results };
+}
+
+/**
+ * Fetch one date window, halving it and retrying whenever Idox says the result
+ * set is too large to list. A single day can't be split further, so its
+ * (rare) overflow is accepted as-is.
+ */
+async function searchWindow(
+  baseUrl: string,
+  startIso: string,
+  endIso: string
+): Promise<RawIdoxApplication[]> {
+  const { tooMany, results } = await fetchAdvancedSearchChunk(
+    baseUrl,
+    isoToIdoxSlash(startIso),
+    isoToIdoxSlash(endIso)
+  );
+
+  if (!tooMany || startIso >= endIso) return results;
+
+  const mid = midpointIso(startIso, endIso);
+  const left = await searchWindow(baseUrl, startIso, mid);
+  const right = await searchWindow(baseUrl, addDaysIso(mid, 1), endIso);
+  return [...left, ...right];
 }
 
 export async function searchByDateRange(
@@ -218,9 +284,9 @@ export async function searchByDateRange(
   const seen = new Set<string>();
   const results: RawIdoxApplication[] = [];
 
-  for (const [startSlash, endSlash] of chunks) {
+  for (const [startIso, endIso] of chunks) {
     try {
-      const chunkResults = await fetchAdvancedSearchChunk(baseUrl, startSlash, endSlash);
+      const chunkResults = await searchWindow(baseUrl, startIso, endIso);
       for (const r of chunkResults) {
         const key = r.keyVal || r.reference;
         if (key && !seen.has(key)) {
@@ -229,7 +295,7 @@ export async function searchByDateRange(
         }
       }
     } catch {
-      // A failed chunk shouldn't sink the whole search; carry on with the rest.
+      // A failed window shouldn't sink the whole search; carry on with the rest.
     }
   }
 
