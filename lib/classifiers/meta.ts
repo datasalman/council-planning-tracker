@@ -13,36 +13,24 @@ import categories from "./categories.json";
  *             masts, advertisement consent, condition discharges) — usually
  *             noise for a builder
  *
- * Keeping this as a name -> group lookup means the matching logic and the
- * category keywords stay untouched; the UI just reads the grouping.
+ * The grouping lives alongside the keywords in `categories.json` so there is a
+ * single source of truth; everything here is derived from that file.
  */
 export type CategoryGroup = "high" | "medium" | "low";
 
-export const CATEGORY_NAMES = Object.keys(categories);
+export interface CategoryDefinition {
+  group: CategoryGroup;
+  keywords: string[];
+  exclude?: string[];
+}
 
-export const CATEGORY_GROUP: Record<string, CategoryGroup> = {
-  "Loft Conversions": "high",
-  "Rear Extensions": "high",
-  "Side Extensions": "high",
-  "Two-Storey Extensions": "high",
-  "Front Extensions": "high",
-  "Dormer Windows": "high",
-  "Hip-to-Gable": "high",
-  "Basement Extensions": "high",
-  "New Build": "high",
-  "Demolition & Rebuild": "high",
-  "Garage / Outbuilding / Garden Structure": "high",
-  "Change of Use": "medium",
-  "Prior Approval / Permitted Development": "medium",
-  "Outline & Reserved Matters": "medium",
-  "Commercial / Mixed Use": "medium",
-  "Certificate of Lawfulness": "low",
-  "Listed Building & Heritage": "low",
-  "Advertisement Consent": "low",
-  "Telecommunications": "low",
-  "Trees & Hedgerows (TPO)": "low",
-  "Discharge of Conditions": "low",
-};
+const DEFINITIONS = categories as Record<string, CategoryDefinition>;
+
+export const CATEGORY_NAMES = Object.keys(DEFINITIONS);
+
+export const CATEGORY_GROUP: Record<string, CategoryGroup> = Object.fromEntries(
+  Object.entries(DEFINITIONS).map(([name, def]) => [name, def.group])
+);
 
 export const GROUP_ORDER: CategoryGroup[] = ["high", "medium", "low"];
 
