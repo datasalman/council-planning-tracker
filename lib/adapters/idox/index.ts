@@ -1,6 +1,6 @@
 import { CouncilAdapter, SearchParams } from "../types";
 import { Application } from "../../types";
-import { searchByDateRange, healthCheck } from "./client";
+import { searchByDateRange } from "./client";
 import { transformApplication } from "./transformer";
 
 /**
@@ -63,9 +63,5 @@ export class IdoxAdapter implements CouncilAdapter {
 
     onProgress?.(results.length);
     return results;
-  }
-
-  async healthCheck(): Promise<boolean> {
-    return healthCheck(this.baseUrl);
   }
 }

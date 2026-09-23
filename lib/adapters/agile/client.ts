@@ -1,10 +1,10 @@
 import axios, { AxiosInstance } from "axios";
+import { BROWSER_USER_AGENT } from "../http";
 
 const BASE_URL = "https://planningapi.agileapplications.co.uk";
 const SEARCH_ENDPOINT = "/api/application/search";
 const TIMEOUT_MS = Number(process.env.REQUEST_TIMEOUT_MS) || 30_000;
-const UA =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+const UA = BROWSER_USER_AGENT;
 
 export interface RawAgileApplication {
   id: number;
@@ -68,14 +68,5 @@ export class AgileApplicationsClient {
     const results = response.data?.results ?? [];
     onProgress?.(results.length);
     return results;
-  }
-
-  async healthCheck(): Promise<boolean> {
-    try {
-      await this.http.get("/api/system/checkserver");
-      return true;
-    } catch {
-      return false;
-    }
   }
 }

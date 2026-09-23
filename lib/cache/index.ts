@@ -44,7 +44,3 @@ export function setCached(params: SearchParams, data: Application[]): void {
 
   store.set(key, { key, data, timestamp: Date.now() });
 }
-
-export function clearCache(): void {
-  store.clear();
-}

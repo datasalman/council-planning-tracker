@@ -35,8 +35,4 @@ export class AgileAdapter implements CouncilAdapter {
       transformApplication(item, this.councilName, this.portalBaseUrl)
     );
   }
-
-  async healthCheck(): Promise<boolean> {
-    return this.client.healthCheck();
-  }
 }

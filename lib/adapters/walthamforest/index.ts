@@ -1,6 +1,6 @@
 import { CouncilAdapter, SearchParams } from "../types";
 import { Application } from "../../types";
-import { searchByDateRange, healthCheck } from "./client";
+import { searchByDateRange } from "./client";
 import { transformApplication } from "./transformer";
 
 // The portal caps each request at 50 results, so fetch in 7-day chunks to stay under it.
@@ -56,9 +56,5 @@ export class WalthamForestAdapter implements CouncilAdapter {
     }
 
     return applications;
-  }
-
-  async healthCheck(): Promise<boolean> {
-    return healthCheck();
   }
 }

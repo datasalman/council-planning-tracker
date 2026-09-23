@@ -41,5 +41,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# exported results and logs
+*.xlsx
+*.csv
+*.log
+exports/
+
 # local editor / tooling
 .claude/

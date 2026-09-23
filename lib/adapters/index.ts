@@ -169,7 +169,3 @@ export function getAdapter(councilId: string): CouncilAdapter {
   if (!adapter) throw new Error(`Unknown council: ${councilId}`);
   return adapter;
 }
-
-export function getAllAdapters(): CouncilAdapter[] {
-  return Array.from(adapters.values());
-}

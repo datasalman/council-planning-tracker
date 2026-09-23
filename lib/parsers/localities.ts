@@ -132,5 +132,3 @@ export const LOCALITY_PROPER_CASE: Map<string, string> = new Map(
 export const LOCALITIES_SORTED: string[] = LONDON_LOCALITIES_LIST.map((l) =>
   l.toUpperCase()
 ).sort((a, b) => b.length - a.length);
-
-export const LONDON_LOCALITIES_LIST_EXPORTED = LONDON_LOCALITIES_LIST;

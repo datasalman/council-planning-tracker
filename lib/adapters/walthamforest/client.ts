@@ -1,4 +1,5 @@
 import axios from "axios";
+import { BROWSER_USER_AGENT } from "../http";
 
 const BASE_URL =
   "https://placehub.walthamforest.gov.uk/planning/index.html";
@@ -97,21 +98,11 @@ export async function searchByDateRange(
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
       Accept: "text/html,application/xhtml+xml",
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "User-Agent": BROWSER_USER_AGENT,
     },
     timeout: TIMEOUT_MS,
     responseType: "text",
   });
 
   return parseResultsHTML(response.data);
-}
-
-export async function healthCheck(): Promise<boolean> {
-  try {
-    await axios.get(BASE_URL, { timeout: 5_000, responseType: "text" });
-    return true;
-  } catch {
-    return false;
-  }
 }

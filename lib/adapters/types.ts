@@ -11,5 +11,4 @@ export interface CouncilAdapter {
   councilId: string;
   councilName: string;
   search(params: SearchParams, onProgress?: (count: number) => void): Promise<Application[]>;
-  healthCheck(): Promise<boolean>;
 }

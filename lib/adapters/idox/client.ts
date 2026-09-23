@@ -1,13 +1,10 @@
 import axios from "axios";
-import https from "https";
+import { BROWSER_USER_AGENT } from "../http";
 
-const client = axios.create({
-  httpsAgent: new https.Agent({ rejectUnauthorized: false })
-});
+const client = axios.create();
 
 const TIMEOUT_MS = Number(process.env.REQUEST_TIMEOUT_MS) || 30_000;
-const UA =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
+const UA = BROWSER_USER_AGENT;
 
 export interface RawIdoxApplication {
   keyVal: string;
@@ -300,17 +297,4 @@ export async function searchByDateRange(
   }
 
   return results;
-}
-
-export async function healthCheck(baseUrl: string): Promise<boolean> {
-  try {
-    await client.get(`${baseUrl}/search.do`, {
-      params: { action: "simple" },
-      timeout: 5_000,
-      responseType: "text",
-    });
-    return true;
-  } catch {
-    return false;
-  }
 }
